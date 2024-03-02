@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  drzl-pg:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: ${VITE_POSTGRES_PASSWORD}
+      POSTGRES_USER: ${VITE_POSTGRES_USER}
+      POSTGRES_DB: ${VITE_POSTGRES_DB}
+
+    volumes:
+      - drzl-pg-data:/var/lib/postgres
+
+    networks:
+      - auths-network
+
+networks:
+  auths-network:
+    driver: bridge
+volumes:
+  drzl-pg-data:
+  node_modules:
