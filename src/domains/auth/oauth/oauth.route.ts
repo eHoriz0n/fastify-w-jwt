@@ -1,14 +1,15 @@
 // auth.js
 import { FastifyReply, FastifyRequest } from "fastify";
 import axios from "axios";
-import { endpoints, cookiesConf } from "../../../config/default.config";
+import { endpoints } from "../../../config/default.config";
 import { createOAuthUser, getUser } from "../auth.services";
-import { RouteResponse } from "src/shared/models";
+import { UserPayload } from "@plugins/authenticator";
 export default async function (fastify: any) {
   // Define a route for Google OAuth2 callback
   try {
     fastify.get(
       endpoints.googleCallback,
+      { preHandler: fastify.authorize },
       async function (req: FastifyRequest, res: FastifyReply) {
         // Fastify instance gets decorated with this method on OAuth plugin initialization
         const { token } =
@@ -24,14 +25,31 @@ export default async function (fastify: any) {
 
         const user = await userInfoResponse.data;
         const existingUser = await getUser(user.email, false);
+        let payload: UserPayload;
         if (!existingUser.success) {
           await createOAuthUser({
             username: user.name,
             email: user.email,
             oauthToken: user.id,
           });
+          payload = {
+            email: user.name,
+            username: user.email,
+            verified: false,
+          };
+        } else {
+          payload = {
+            email: existingUser?.data?.email as string,
+            username: existingUser?.data?.username as string,
+            verified: existingUser?.data?.verified as boolean,
+          };
         }
-        req.session.authenticated = true;
+        const tokenjwt = req.jwt.sign(payload);
+        res.setCookie("access_token", tokenjwt, {
+          path: "/",
+          httpOnly: true,
+          secure: true,
+        });
 
         //redirect the user to a protected route
         res.redirect(process.env.API_URL);
@@ -40,33 +58,6 @@ export default async function (fastify: any) {
   } catch (err) {
     console.log(err);
   }
-  fastify.get(
-    endpoints.logout,
-    {
-      schema: {
-        response: {
-          200: RouteResponse,
-          400: RouteResponse,
-          401: RouteResponse,
-          500: RouteResponse,
-        },
-      },
-    },
-
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      if (request.session.authenticated) {
-        request.session.destroy((err: any) => {
-          if (err) {
-            return reply.status(500).send("Internal Server Error");
-          } else {
-            reply.redirect("/");
-          }
-        });
-      } else {
-        return reply.status(500).send("Internal Server Error");
-      }
-    },
-  );
 }
 
 // OAUTH2

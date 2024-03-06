@@ -11,6 +11,7 @@ export async function loginController(
     const { email, password } = req.body;
     const userResult = await getUser(email, false);
     const existingUser = await validateUser(userResult, password, reply);
+
     // internal disable
     // if (existingUser?.TWO_FA === true) {
     // 	const tfaToken = generate2FACode(parsedBody);
@@ -21,8 +22,18 @@ export async function loginController(
     // req.session.email = parsedBody.email;
     // req.session.authenticated = true;
     // await createRedisSession(req, existingUser);
-    console.log(existingUser);
-    return reply.status(200).send({ ok: true, message: "Authorized" });
+    const payload = {
+      email: existingUser?.email,
+      username: existingUser?.username,
+      verified: existingUser?.verified,
+    };
+    const token = req.jwt.sign(payload);
+    reply.setCookie("access_token", token, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+    });
+    return reply.status(200).send({ ok: true, message: "authenticated" });
   } catch (error: any) {
     console.log(error);
     return reply
@@ -88,5 +99,14 @@ export async function reigsterController(
       .status(500)
       .send({ ok: false, error: "Internal Server Error, check the logs" });
   }
+}
+
+export async function logoutController(
+  _req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  reply.clearCookie("access_token");
+
+  return reply.send({ ok: true, message: "Logout successful" });
 }
 // OAUTH2, 2fa-, cookie

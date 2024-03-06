@@ -1,7 +1,6 @@
 import fastify from "fastify";
-import configureSession from "./config/session";
+import configureJWT from "./config/session";
 import configureOAuth2 from "./config/oauth";
-import authorizer from "./middlewares/authorizer";
 import cors from "@fastify/cors";
 import { dirname, join } from "path";
 import { fastifyAutoload } from "@fastify/autoload";
@@ -17,6 +16,7 @@ import {
 import { endpoints } from "./config/default.config";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
+
 const server = fastify({
   logger: {
     transport: {
@@ -71,11 +71,10 @@ server.register(fastifySwaggerUI, {
   routePrefix: endpoints.docs,
 });
 
-server.addHook("preHandler", authorizer); // Post session authorizer
+configureJWT(server); // session config
 
 configureOAuth2(server); // oauth provider
 // server.register(fastifyCookie)
-configureSession(server); // session config
 server.register(import("./domains/auth/auth.route")); // credentials auth routes
 server.register(import("./domains/auth/oauth/oauth.route")); // oauth routes
 server.register(import("./domains/auth/reset/reset.route")); // Reset password routes
@@ -88,7 +87,7 @@ server.get(endpoints.home, (_request, reply) => {
 
 const PORT = process.env.PORT || 8080;
 
-server.listen({ port: PORT, host: process.env.HOST }, (err, address) => {
+server.listen({ port: PORT, host: process.env.HOST }, (err, _address) => {
   if (err) {
     console.error(err);
     process.exit(1);

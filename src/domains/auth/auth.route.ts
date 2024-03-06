@@ -1,5 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { loginController, reigsterController } from "./auth.controller";
+import {
+  loginController,
+  logoutController,
+  reigsterController,
+} from "./auth.controller";
 import { endpoints } from "../../config/default.config";
 import { LoginSchema, RegisterSchema } from "./auth.model";
 import { RouteResponse } from "../../shared/models";
@@ -9,7 +13,9 @@ export default async function (app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
   server.post(
     endpoints.login,
+
     {
+      preHandler: server.authorize,
       schema: {
         body: LoginSchema,
         response: {
@@ -25,6 +31,7 @@ export default async function (app: FastifyInstance) {
   app.post(
     endpoints.register,
     {
+      preHandler: server.authorize,
       schema: {
         body: RegisterSchema,
         response: {
@@ -37,5 +44,22 @@ export default async function (app: FastifyInstance) {
     },
     reigsterController,
   );
+  app.delete(
+    endpoints.logout,
+    {
+      preHandler: app.authenticate,
+      schema: {
+        response: {
+          200: RouteResponse,
+          400: RouteResponse,
+          401: RouteResponse,
+          500: RouteResponse,
+        },
+      },
+    },
+
+    logoutController,
+  );
+
   // app.post(endpoints.tfaLoginDyn, tfagenController);
 }

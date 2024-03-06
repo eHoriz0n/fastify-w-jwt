@@ -3,10 +3,15 @@ import { resetController, resetTokenController } from "./reset.controller";
 import { endpoints } from "../../../config/default.config";
 import { ResetSchema, ResetTokenSchema } from "../auth.model";
 import { RouteResponse } from "src/shared/models";
+import { ZodTypeProvider } from "fastify-type-provider-zod";
 export default async function (app: FastifyInstance) {
-  app.post(
+  const server = app.withTypeProvider<ZodTypeProvider>();
+
+  server.post(
     endpoints.reset,
     {
+      preHandler: server.authorize,
+
       schema: {
         body: ResetSchema,
         response: {
@@ -22,6 +27,7 @@ export default async function (app: FastifyInstance) {
   app.put(
     endpoints.resetDyn,
     {
+      preHandler: server.authorize,
       schema: {
         body: ResetTokenSchema,
         response: {
