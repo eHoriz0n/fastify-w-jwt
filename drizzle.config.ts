@@ -1,4 +1,3 @@
-import { environments } from "./src/config/environment.config";
 import type { Config } from "drizzle-kit";
 // import dotenv from "dotenv";
 
@@ -14,13 +13,13 @@ import type { Config } from "drizzle-kit";
 //       : "./dist/src/db/drizzle",
 // };
 export default {
-  schema: environments.schema,
-  out: environments.out,
+  schema: process.env.DB_SCHEMA_PATH,
+  out: process.env.DB_OUT_PATH,
 
   breakpoints: true,
   driver: "pg",
   dbCredentials: {
-    connectionString: environments.dbUrl as string,
+    connectionString: process.env.PG_DATABASE,
     ssl: false,
   },
   verbose: true,

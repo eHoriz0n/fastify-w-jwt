@@ -6,11 +6,10 @@ export const user = pgTable("user", {
     .$defaultFn(() => createId())
     .primaryKey()
     .unique(),
-  username: varchar("username", { length: 256 }).unique(),
+  username: varchar("username", { length: 256 }).unique().notNull(),
   password: varchar("password", { length: 256 }),
   oauthToken: varchar("oauthToken", { length: 256 }),
-  email: varchar("email", { length: 256 }).unique(),
+  email: varchar("email", { length: 256 }).unique().notNull(),
   type: varchar("type", { length: 256 }),
-  TWO_FA: boolean("TWO_FA").default(false),
-  twoFaEmail: varchar("twoFaEmail", { length: 256 }),
+  verified: boolean("verified").default(false),
 });

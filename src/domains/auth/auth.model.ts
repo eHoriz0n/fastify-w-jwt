@@ -3,38 +3,32 @@ export interface LoginRequestBody {
   username: string;
   password: string;
 }
-export const bodyJsonSchema = {
-  type: "object",
-  required: ["username", "password"],
-  properties: {
-    username: { type: "string" },
-    password: { type: "string" },
-  },
-};
 export const LoginSchema = z.object({
-  email: z.string(),
-  password: z.string(),
+  email: z.string().min(1).email(),
+  password: z.string().min(1),
 });
 export const ResetSchema = z.object({
-  email: z.string(),
+  email: z.string().min(1).email(),
 });
 export const tfacodeSchema = z.object({
-  code: z.string().max(6),
+  code: z.string().max(6).min(1),
 });
 export const ResetTokenSchema = z.object({
-  password: z.string(),
+  email: z.string().min(1).email(),
+  tokenId: z.string().min(1),
+  password: z.string().min(1),
 });
 export const RegisterSchema = z.object({
-  username: z.string(),
-  password: z.string(),
-  email: z.string(),
+  username: z.string().min(1),
+  password: z.string().min(1),
+  email: z.string().email(),
 });
 export const RegisterOauthSchema = z.object({
   name: z.string().optional(),
   id: z.string().optional(),
   username: z.string().optional(),
   password: z.string().optional(),
-  email: z.string(),
+  email: z.string().min(1).email(),
 });
 export interface userType {
   id?: string;
@@ -43,8 +37,7 @@ export interface userType {
   oauthToken: string | null;
   email: string | null;
   type: string | null;
-  TWO_FA: boolean | null;
-  twoFaEmail: string | null;
+  verified: boolean | null;
 }
 export interface RegisterOAuthType {
   username: string;

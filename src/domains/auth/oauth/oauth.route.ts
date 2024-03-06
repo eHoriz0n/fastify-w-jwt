@@ -1,10 +1,9 @@
 // auth.js
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 import axios from "axios";
-import { csts } from "../../../config/consts";
-import { redis } from "../../../config/redis-client";
 import { endpoints, cookiesConf } from "../../../config/default.config";
 import { createOAuthUser, getUser } from "../auth.services";
+import { RouteResponse } from "src/shared/models";
 export default async function (fastify: any) {
   // Define a route for Google OAuth2 callback
   try {
@@ -14,13 +13,13 @@ export default async function (fastify: any) {
         // Fastify instance gets decorated with this method on OAuth plugin initialization
         const { token } =
           await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
-            await req
+            req,
           );
 
         //get the user info from google
         const userInfoResponse = await axios.get(
           process.env.OAUTH_USERINFO_URL as string,
-          { headers: { Authorization: `Bearer ${token.access_token}` } }
+          { headers: { Authorization: `Bearer ${token.access_token}` } },
         );
 
         const user = await userInfoResponse.data;
@@ -28,37 +27,32 @@ export default async function (fastify: any) {
         if (!existingUser.success) {
           await createOAuthUser({
             username: user.name,
-            email: user.email as string,
+            email: user.email,
             oauthToken: user.id,
           });
         }
         req.session.authenticated = true;
 
         //redirect the user to a protected route
-        res.redirect(endpoints.homeUrl);
-      }
+        res.redirect(process.env.API_URL);
+      },
     );
   } catch (err) {
     console.log(err);
   }
-  // dev function
-  fastify.get("/getAllRecords", async (request: any, reply: any) => {
-    try {
-      const keys = await redis.keys("*"); // Get all keys
-      const values = await redis.mget(...keys); // Get values for all keys
-      const records = keys.reduce((result: any, key: any, index: any) => {
-        result[key] = values[index];
-        return result;
-      }, {});
-      reply.send(records);
-      return records;
-    } catch (err) {
-      console.error(err);
-      reply.status(500).send("Error fetching records from Redis");
-    }
-  });
   fastify.get(
     endpoints.logout,
+    {
+      schema: {
+        response: {
+          200: RouteResponse,
+          400: RouteResponse,
+          401: RouteResponse,
+          500: RouteResponse,
+        },
+      },
+    },
+
     async (request: FastifyRequest, reply: FastifyReply) => {
       if (request.session.authenticated) {
         request.session.destroy((err: any) => {
@@ -71,7 +65,7 @@ export default async function (fastify: any) {
       } else {
         return reply.status(500).send("Internal Server Error");
       }
-    }
+    },
   );
 }
 

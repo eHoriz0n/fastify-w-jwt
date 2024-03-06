@@ -1,0 +1,16 @@
+import type { FastifyInstance } from "fastify";
+import { fastifyPlugin } from "fastify-plugin";
+const errorHandlerPlugin = async (fastify: FastifyInstance) => {
+  // Handle and parse ZodErrors
+  fastify.setErrorHandler((error, _request, reply) => {
+    if (error instanceof Error && error.constructor.name === "ZodError") {
+      reply.status(400).send({
+        ok: false,
+        message: error.code,
+      });
+      return;
+    }
+  });
+};
+
+export default fastifyPlugin(errorHandlerPlugin);

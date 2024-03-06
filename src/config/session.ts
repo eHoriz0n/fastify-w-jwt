@@ -1,7 +1,6 @@
 // session config
 import { FastifyInstance } from "fastify";
 import { endpoints, cookiesConf } from "./default.config";
-import { store } from "./redis-client";
 import fastifySession from "@fastify/session";
 declare module "fastify" {
   interface Session {
@@ -26,7 +25,7 @@ async function configureSession(fastify: FastifyInstance) {
 
   // fastify.register(fastifyCookie, {});
   fastify.register(fastifySession, {
-    secret: process.env.SECRET as string,
+    secret: process.env.SESSION_SECRET as string,
     cookieName: cookiesConf.cookiename,
     saveUninitialized: false,
 
@@ -36,7 +35,6 @@ async function configureSession(fastify: FastifyInstance) {
       path: "/",
       sameSite: "none",
     },
-    store,
   });
 }
 export default configureSession;

@@ -1,4 +1,4 @@
-export const csts = {
+const csts = {
   OAUTH: "OAUTH2",
   CREDENTIALS: "CREDENTIALS",
   TWO_FACTOR_AUTH: "2fa:",
@@ -7,7 +7,5 @@ export const csts = {
   SESSION: "sess:",
   RESET: "res:",
 };
-// OAUTH2, 2fa-, cookie ,link
-module.exports = {
-  csts,
-};
+// AUTH2AUTH2, 2fa-, cookie ,link
+export default csts;
