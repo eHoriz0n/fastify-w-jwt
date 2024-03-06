@@ -18,7 +18,18 @@ import { endpoints } from "./config/default.config";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
 const server = fastify({
-  logger: false,
+  logger: {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "HH:MM:ss Z",
+        ignore: "pid,hostname",
+      },
+    },
+  },
+  serializerOpts: {
+    rounding: "ceil",
+  },
 });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -82,5 +93,4 @@ server.listen({ port: PORT, host: process.env.HOST }, (err, address) => {
     console.error(err);
     process.exit(1);
   }
-  console.log(`Server listening at ${address}`);
 });
