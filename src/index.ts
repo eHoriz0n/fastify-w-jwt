@@ -10,10 +10,13 @@ import { config } from "dotenv";
 config();
 // import fastifyCookie from "@fastify/cookie";
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
 import { endpoints } from "./config/default.config";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUI from "@fastify/swagger-ui";
 const server = fastify({
   logger: false,
 });
@@ -36,6 +39,26 @@ server
   .after(() => {
     server.log.info("All plugins are ready");
   });
+
+server
+  .register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: "Fastify with jwt",
+        description: "dummy",
+        version: "1.0.0",
+      },
+      servers: [],
+    },
+    transform: jsonSchemaTransform,
+  })
+  .after(() => {
+    server.log.info("swagger registered");
+  });
+
+server.register(fastifySwaggerUI, {
+  routePrefix: endpoints.docs,
+});
 
 server.addHook("preHandler", authorizer); // Post session authorizer
 

@@ -5,6 +5,7 @@ const rg = (rt: string) => {
 export const endpoints = {
   oauth_start_redirect_path: rg("/auth/login/google"),
   home: rg("/"),
+  docs: rg("/docs"),
   // group : auth
   login: rg("/auth/login"),
   register: rg("/auth/register"),
