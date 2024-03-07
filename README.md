@@ -7,11 +7,7 @@ A full auth system made with Fastify plugins only, typescript and jwt
 - Fastify (Typescript)
 - Drizzle
 - Postgres
+- Redis
 
 ## Todo
 
-- remove redis and session config 
-- impl jwt
-- edit middlewares to fit in with jwt
-- fix authorizer
-- create automigration for drizzle
