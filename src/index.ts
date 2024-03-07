@@ -42,7 +42,7 @@ server.register(cors, {
 });
 server.setValidatorCompiler(validatorCompiler);
 server.setSerializerCompiler(serializerCompiler);
-server.log.info("Registering plugins...");
+server.log.info("Registering plugins..");
 server
   .register(fastifyAutoload, {
     dir: join(__dirname, "plugins"),

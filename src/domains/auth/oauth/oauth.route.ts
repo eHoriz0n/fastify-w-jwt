@@ -1,7 +1,11 @@
 // auth.js
 import { FastifyReply, FastifyRequest } from "fastify";
 import axios from "axios";
-import { endpoints } from "../../../config/default.config";
+import {
+  TOKEN_NAME,
+  cookiesConf,
+  endpoints,
+} from "../../../config/default.config";
 import { createOAuthUser, getUser } from "../auth.services";
 import { UserPayload } from "@plugins/authenticator";
 export default async function (fastify: any) {
@@ -45,11 +49,7 @@ export default async function (fastify: any) {
           };
         }
         const tokenjwt = req.jwt.sign(payload);
-        res.setCookie("access_token", tokenjwt, {
-          path: "/",
-          httpOnly: true,
-          secure: true,
-        });
+        res.setCookie(TOKEN_NAME, tokenjwt, cookiesConf);
 
         //redirect the user to a protected route
         res.redirect(process.env.API_URL);

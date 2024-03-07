@@ -16,9 +16,21 @@ services:
     networks:
       - auths-network
 
+  drzl-redis:
+    image: redis:latest
+
+    ports:
+      - "6379:6379"
+    volumes:
+      - drzl-redis-data:/data
+
+    networks:
+      - auths-network
+
 networks:
   auths-network:
     driver: bridge
 volumes:
   drzl-pg-data:
+  drzl-redis-data:
   node_modules:

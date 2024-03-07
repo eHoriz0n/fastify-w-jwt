@@ -20,13 +20,15 @@ export const endpoints = {
   dashboard: rg("/dashboard"),
   // refreshsession: "/refresh",
 };
+export const TOKEN_NAME = "access_token";
 export const cookiesConf = {
-  cookiename: "my-session-cookie",
-  sessionName: "session",
-  maxage: 120000,
+  path: "/",
+  httpOnly: true,
+  secure: true,
+  maxAge: 1728000,
 };
-// export const redisConf = {
-//   sessionExp: 180,
-//   resetTokenExp: 180,
-//   tfaTokenExp: 180,
-// };
+export const redisConf = {
+  // sessionExp: 180,
+  resetTokenExp: 300,
+  tfaTokenExp: 300,
+};

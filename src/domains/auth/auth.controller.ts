@@ -2,6 +2,7 @@ import { LoginData, RegisterData } from "./auth.model";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { createUser, getUser } from "./auth.services";
 import { validateUser } from "./auth.validator";
+import { TOKEN_NAME, cookiesConf } from "src/config/default.config";
 // Login
 export async function loginController(
   req: FastifyRequest<{ Body: LoginData }>,
@@ -27,12 +28,10 @@ export async function loginController(
       username: existingUser?.username,
       verified: existingUser?.verified,
     };
+    const expirationDate = new Date();
+    expirationDate.setTime(expirationDate.getTime() + 1728000 * 1000);
     const token = req.jwt.sign(payload);
-    reply.setCookie("access_token", token, {
-      path: "/",
-      httpOnly: true,
-      secure: true,
-    });
+    reply.setCookie(TOKEN_NAME, token, cookiesConf);
     return reply.status(200).send({ ok: true, message: "authenticated" });
   } catch (error: any) {
     console.log(error);

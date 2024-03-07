@@ -1,9 +1,10 @@
 import { ResetData, ResetTokenData } from "../auth.model";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { editPassword, getUser } from "../auth.services";
-import { createId } from "@paralleldrive/cuid2";
 import csts from "src/config/consts";
-import { FastifyJWT } from "@fastify/jwt";
+import { transporter } from "src/config/mailer";
+import { generateCode } from "src/lib/auth-utils/2fa-code-gen";
+import { redis } from "src/config/redis-client";
 // Reset
 export async function resetController(
   req: FastifyRequest<{ Body: ResetData }>,
@@ -16,7 +17,7 @@ export async function resetController(
     if (!user.success) {
       return reply.send({
         ok: true,
-        message: "A reset link is sent to your email address.",
+        message: "A reset code is sent to your email address.",
       });
     }
     if (user.data?.type === csts.OAUTH) {
@@ -24,14 +25,26 @@ export async function resetController(
         .status(401)
         .send({ ok: false, message: "An Error occured please try again" });
     }
-    const userToken = createId();
-    const token = req.jwt.sign({ tokenId: userToken });
-
+    const token = await generateCode(user?.data?.email, "RESET");
     // await redis.set(csts.RESET + userToken, parsedBody.email);
     // await redis.expire(csts.RESET + userToken, redisConf.resetTokenExp);
-    reply.code(201).send({ ok: true, message: csts.RESET_LINK + token });
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: user?.data?.email as string,
+      subject: "Subject",
+      text: "this is a test from fastify jwt " + token,
+    };
+    transporter.sendMail(mailOptions, function (error, _info) {
+      if (error) {
+        console.log(error);
+        reply.code(500).send({ ok: false, message: "Internal Server Error" });
+      }
+    });
+    return reply.code(201).send({
+      ok: true,
+      message: "A reset code is sent to your email address.",
+    });
   } catch (error: any) {
-    console.log(error);
     reply.status(500).send({ ok: false, message: "Internal Server Error" });
   }
 }
@@ -43,16 +56,18 @@ export async function resetTokenController(
   try {
     const { email, tokenId, password } = req.body;
     // handle token
-    const decoded = req.jwt.verify<FastifyJWT["tokenId"]>(tokenId);
-    if (!decoded.tokenId) {
-      return reply
-        .status(403)
-        .send({ ok: false, message: "can't reset the password, try again" });
+    const token_email = await redis.get(csts.RESET + email);
+    if (token_email === null || token_email !== tokenId) {
+      return reply.status(401).send({
+        ok: false,
+        message: "unauthorized",
+      });
     }
     const edited = await editPassword(password, email);
     if (!edited.success) {
       reply.status(500).send({ ok: false, message: "Internal Server Error" });
     }
+    await redis.del(csts.RESET + email);
     return reply.code(201).send({ ok: true, message: "password edited" });
   } catch (error: any) {
     reply.status(500).send({ error: "Internal Server Error" });

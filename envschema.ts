@@ -17,6 +17,10 @@ const envSchema = z.object({
   HOST: z.string().min(1),
   PORT: z.number(),
   GOOGLE_REDIRECT_URI: z.string().min(1),
+  REDIS_HOST: z.string().min(1),
+  REDIS_PORT: z.number(),
+  SMTP_USER: z.string().min(1),
+  SMTP_SECRET: z.string().min(1),
 });
 
 const envServer = envSchema.parse({
@@ -35,6 +39,10 @@ const envServer = envSchema.parse({
   API_URL: process.env.API_URL,
   HOST: process.env.HOST,
   PORT: process.env.PORT,
+  REDIS_HOST: process.env.REDIS_HOST,
+  REDIS_PORT: process.env.REDIS_PORT,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_SECRET: process.env.SMTP_SECRET,
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
 });
 

@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { FastifyJWT, JWT } from "@fastify/jwt";
+import { TOKEN_NAME } from "src/config/default.config";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -30,7 +31,7 @@ const authenticator = async (app: FastifyInstance) => {
   app.decorate(
     "authenticate",
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const token = req.cookies["access_token"];
+      const token = req.cookies[TOKEN_NAME];
 
       if (!token) {
         return reply
